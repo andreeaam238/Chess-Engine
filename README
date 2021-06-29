@@ -1,0 +1,262 @@
+Team: PAsta medie
+Members: Blaga Ana-Maria-Andreea (324CB)
+		 Dragomir Constantin-Cristian (324CB)
+		 Ion Teodora-Andreea (324CB)
+
+
+Compiling and running instructions : make build - to compile the source
+									make clean - to delete the object files
+									xboard -fcp "make run" - to run the engine
+
+
+The purpose of this project is to create a chess engine for Xboard.
+In this part, the program implements :
+	- all moves that can be done by every piece
+	- defence for the king in case of attack
+	- castling
+	- en passant
+	- promoting
+The chess table is represented as a matrix of dimension 9x9.
+The rows and columns are numbered from 1 to 8.
+The black pieces are represented by the set of chars "S|LB#K".
+The white pieces are represented by the set of chars "PTCNR*".
+Black pieces are positioned to the superior rows and whites to the inferior.
+
+
+The projects consists of multiple sources: 
+
+
+engineTryTable.cpp which contains the functions:
+ - init_table : - initializes the table with the chess pieces characters
+ 			- complexity : Theta(1) (table size is fixed)
+
+ - update_table : 
+ 		- updates the last chosen pawn move and the table after the last move
+ 		- transforms the pawn into queen when reaching the table oposite side
+ 		- complexity : Theta(1)
+
+
+engineTry.cpp which contains the functions:
+ - is_move : checks if the given move from user is legal
+ 			- complexity : Theta(1)
+ - read_flush_stdin: reads in buffer the commands from xboard
+ 			- complexity : Theta(1)
+ - execute_move : - sends to xboard the next move to be executed
+ 				- updates the engine internal table and the last pawn move
+ 				- complexity : Theta(1)
+ - new_game_command : starts a new game
+ 				- reinitializes the table and last moves
+				- complexity: Theta(1)
+ - black_piece_move : - checks if the king is in chess
+ 		- if not, tries to make castling
+ 		- tries to move a black piece in the given order:
+ 			pawn->horse->bishop->rook->queen->king
+        - before each move checks if it puts the king in danger
+        - if there is no valid move to be done, resigns
+	- complexity: Theta(1)
+ - white_piece_move : - checks if the king is in chess
+ 		- if not, tries to make castling
+ 		- tries to move a white piece in the given order:
+ 			pawn->horse->bishop->rook->queen->king
+        - before each move checks if it puts the king in danger
+        - if there is no valid move to be done, resigns
+	- complexity: Theta(1)
+ - move_to_do : tries making a move according the current color and mode
+ 		- after each move of the enemy, checks if the king is in danger
+ 		- if yes, tries to move the king to a safe spot
+ 		- if there is no safe spot, tries to move another piece to protect it
+ 		- if there is no way to protect the king, resigns
+		- complexity: Theta(1)
+ - go_command:forces the engine to think and make a move in the given situation
+		- complexity: Theta(1)
+ - main : 
+ 		- the engine connects to the xboard through the beginning commands
+ 		  (sigint, san, name) 
+ 		- initializes the table, last moves, color and mode(forced or not)
+ 		- interprets the commands received from the xboard 
+ 		and responds accordingly
+ 			- if the command is a legal move, updates the table,
+ 			moves the current piece and updates the current color at move
+ 			- new : initializes the engine table, the last move variable
+ 					and the default engine pieces color as black 
+ 			- white : sets the current color as white
+ 			- force : puts the engine in the passive mode (force = 1), 
+ 			where it just monitorizes the moves given by the user and 
+ 			updates the table and last pawn move according to current color 
+ 			- go : puts the engine to make a move with the current color pieces
+ 			- quit : exits the program
+ 		- complexity: Theta(1)
+
+
+engineTryKing.cpp whitch contains the functions for king piece:
+(each function has complexity Theta(1))
+ - can_attack_pawn : checks if the pawn given at table[row][col]
+ 					 can attack the black king
+ - can_attack_pawn_white : checks if the pawn given at table[row][col]
+ 					 can attack the white king
+ - can_attack_bishop : checks if the given bishop at table[row][col]
+ 					 can attack the black king
+ - can_attack_bishop_white : hecks if the given bishop at table[row][col]
+					 can attack the white king
+ - can_attack_rook : checks if the given rook at table[row][col]
+					 can attack the black king
+ - can_attack_rook_white : checks if the given rook at table[row][col]
+					 can attack the white king
+ - can_attack_horse : checks if the given horse at table[row][col]
+					 can attack the black king
+ - can_attack_horse_white : checks if the given horse at table[row][col]
+					 can attack the white king
+ - can_attack_king : checks if the given white king at table[row][col]
+					 can attack the black king
+ - can_attack_king_white : checks if the given black king at table[row][col]
+					 can attack the white king
+ - can_attack_queen : checks if the given queen at table[row][col]
+					 can attack the black king
+ - can_attack_queen_white : checks if the given queen at table[row][col]
+					 can attack the white king
+ - is_king_attacked : goes through all the opponent pieces and checks if
+ 					 there is one that can attack the black king
+ - is_king_attacked_white : goes through all the opponent pieces and checks if
+ 					 there is one that can attack the white king
+ - is_square_available_white_king : checks if there is a square available
+ 					 for the white king to be moved
+ - is_square_available_black_king : checks if there is a square available
+ 					 for the black king to be moved
+ - move_king_white : tries to move the white king on the table
+ - move_king_black : tries to move the black king on the table
+ - protect_king_black : tries to move a black piece to protect 
+ 					 the black king in case of attack
+ - protect_king_white : tries to move a white piece to protect 
+ 					 the white king in case of attack
+ - can_black_king_castle : checks if the black king can castle
+ - can_white_king_castle : checks if the white king can castle
+ - generate_tables_black_king : generates the tables with all possible moves 
+ 			for the specified black king
+ 			- the tables are added to the children list of the received node
+ - generate_tables_white_king : generates the tables with all possible moves 
+ 			for the specified white king
+ 			- the tables are added to the children list of the received node
+
+
+engineTryBishop.cpp which contains the functions for the bishop piece:
+(each function has complexity Theta(1))
+ - is_square_available_black_bishop : checks if there is a square available
+ 					 for the given black bishop to be moved
+ - is_square_available_white_bishop : checks if there is a square available
+ 					 for the given white bishop to be moved
+ - move_bishop_white : tries to move the given white bishop
+ 					- checks every move to be safe for the king
+ - move_bishop_black : tries to move the given black bishop
+ 					- checks every move to be safe for the king
+ - generate_tables_black_bishop : generates the tables with all possible moves 
+ 			for the specified black bishop
+ 			- the tables are added to the children list of the received node
+ - generate_tables_white_bishop : generates the tables with all possible moves 
+ 			for the specified white bishop
+ 			- the tables are added to the children list of the received node
+
+
+engineTryHorse.cpp which contains the functions for the bishop piece:
+(each function has complexity Theta(1))
+ - is_square_available_black_horse : checks if there is a square available
+ 					 for the given black horse to be moved
+ - is_square_available_white_horse : checks if there is a square available
+ 					 for the given white horse to be moved
+ - move_horse_white : tries to move the given white horse
+ 					- checks every move to be safe for the king
+ - move_horse_black : tries to move the given black horse
+ 					- checks every move to be safe for the king
+ - generate_tables_black_horse : generates the tables with all possible moves 
+ 			for the specified black horse
+ 			- the tables are added to the children list of the received node
+ - generate_tables_white_horse : generates the tables with all possible moves 
+ 			for the specified white horse
+ 			- the tables are added to the children list of the received node
+
+
+engineTryPawn which cotains functions for pawn piece:
+(each function has complexity Theta(1))
+ - is_square_available_white : checks if there is a square available
+ 					 for the white pawn to be moved
+ - is_square_available_black : checks if there is a square available
+ 					 for the black pawn to be moved
+ - move_pawn_white : tries to move the white pawn on the table
+ - move_pawn_black : tries to move the black pawn on the table
+ - generate_tables_black_pawn : generates the tables with all possible moves 
+ 			for the specified black pawn
+ 			- the tables are added to the children list of the received node
+ - generate_tables_white_pawn : generates the tables with all possible moves 
+ 			for the specified white pawn
+ 			- the tables are added to the children list of the received node
+
+
+engineTryRook which contains functions for the rook piece:
+(each function has complexity Theta(1))
+ - is_square_available_white_rook : checks if there is a square available
+ 					 for the white rook to be moved
+ - is_square_available_black_rook : checks if there is a square available
+ 					 for the black rook to be moved
+ - move_rook_white : tries to move the white rook on the table
+ - move_rook_black : tries to move the black rook on the table
+ - generate_tables_black_rook : generates the tables with all possible moves 
+ 			for the specified black rook
+ 			- the tables are added to the children list of the received node
+ - generate_tables_white_rook : generates the tables with all possible moves 
+ 			for the specified white rook
+ 			- the tables are added to the children list of the received node
+
+
+engineTryQueen which contains functions for the queen piece:
+(each function has complexity Theta(1))
+ - is_square_available_white_queen : checks if there is a square available
+ 					 for the white queen to be moved
+ - is_square_available_black_queen : checks if there is a square available
+ 					 for the black queen to be moved
+ - move_queen_white : tries to move the white queen on the table
+ - move_queen_black : tries to move the black queen on the table
+ - generate_tables_black_queen : generates the tables with all possible moves 
+ 			for the specified black queen
+ 			- the tables are added to the children list of the received node
+ - generate_tables_white_queen : generates the tables with all possible moves 
+ 			for the specified white queen
+ 			- the tables are added to the children list of the received node
+
+
+alphaBetaAlgo which contains functions for alpha-beta pruning algorithm:
+ - eval_table : - calculates the sum of the current pieces on the table
+ 				- each piece has a specific value according to its strength
+ - generate_positions : generates all possible tables after all possible moves
+ 			- the moves are generated according to the color at move
+ 			- generates all possible moves for each piece on the table
+ 			- the generated tables are added to the children list
+ 			of the node received as parameter
+ 			- the node received contains the table in the current state,
+ 			table which the next move is calculated for
+ - minimax : implements the alpha-beta pruning algorithm
+ 		- the function is used to find and return the most efective move
+ 		- the move is chosen based on the total value of the pieces on the table
+ 		- the function choses the move with minimum value when black is at move
+ 		  (because white pieces values are positive 
+ 		  and their number must be the minimum)
+ 		- the function choses the move with maximum value when white is at move
+ 		  (because black pieces values are negative
+ 		  and their number must be the minimum)
+
+
+
+Responsibilities:
+ - Dragomir Constantin-Cristian : engine skell for black pieces, debugging,
+ 		makefile, coding style, castling, rook moves,
+ 		generating tables functions for queen, king, pawn,
+ 		alpha-beta pruning algorithm
+ - Blaga Ana-Maria-Andreea : engine edit mode, optimisation, corner cases,
+ 		promoting, en passant, pawn, horse and queen moves,
+ 		debugging, alpha-beta pruning algorithm
+ - Ion Teodora-Andreea: engine skell for white pieces, debugging, readme,
+ 		coding style, defence of the king, bishop and king moves,
+ 		generating tables functions for horse, bishop, rook,
+ 		alpha-beta pruning algorithm
+
+
+References : 
+https://www.gnu.org/software/xboard/engine-intf.html
